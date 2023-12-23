@@ -6,6 +6,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -30,13 +31,11 @@ public class OrderHeaderController {
 	
 	@PostMapping("/save")
 	
-	public String createOrders(@RequestBody OrderHeader header) {
-		
+	public ResponseEntity<OrderHeader> createOrders(@RequestBody OrderHeader header) {
 		return theOrderHeaderService.createOrder(header);
 	}
 	@GetMapping("/get")
-	
-	public List<OrderHeader> getAllOrder(){
+	public List<OrderHeader> getAllOrder() throws OrderNotFoundException{
 		return theOrderHeaderService.getAllOrder();
 	}
 	
@@ -50,15 +49,11 @@ public class OrderHeaderController {
 		
 	}
 	
-	
-	@PatchMapping("/updateField/{id}")
-	public OrderHeader updateFieldByOrderNo(@PathVariable long id ,@RequestBody Map<String,Object> updates ) {
-		return theOrderHeaderService.updateFieldByOrderNo(id,updates);
-	}
 	@DeleteMapping("/delete/{id}")
-	
 	public String deleteByOrderNO(@PathVariable long id )  {
 		return theOrderHeaderService.deleteByOrderNO(id);
 	}
+	
+	
 
 }

@@ -1,20 +1,19 @@
 package com.orderPopulation.ServiceImpl;
 
-import java.lang.reflect.Field;
+
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ReflectionUtils;
-
 import com.orderPopulation.Entity.OrderHeader;
 import com.orderPopulation.Exception.OrderNotFoundException;
 import com.orderPopulation.Repository.OrderHeaderRepository;
 import com.orderPopulation.Service.OrderHeaderService;
+
 @Service
 public class OrderHeaderServiceImpl implements OrderHeaderService {
 	public static Logger log=Logger.getLogger(OrderHeaderServiceImpl.class);
@@ -22,60 +21,74 @@ public class OrderHeaderServiceImpl implements OrderHeaderService {
  private OrderHeaderRepository theOrderHeaderRepository;
 
 	@Override
-	public String createOrder(OrderHeader header) {
+	public ResponseEntity<OrderHeader> createOrder(OrderHeader header) {
 		PropertyConfigurator.configure("Log.property");
-		log.debug("Create Order SuccessFully");
-		theOrderHeaderRepository.save(header);
-		return "Successfully orders created ";
+		if(header != null) {
+		log.info("Create Order SuccessFully");
+		return  ResponseEntity.ok(header);
+		}
+		else {
+			log.error("Cannot create order. Input parameter 'header' is null.");
+			throw new NullPointerException("Header cannot be null");
+		}
+		
 	}
 
 	@Override
-	public List<OrderHeader> getAllOrder() {
+	public List<OrderHeader> getAllOrder() throws OrderNotFoundException {
 		PropertyConfigurator.configure("Log.property");
-		log.info(theOrderHeaderRepository.findAll());
-		log.debug("Successfully Get the OrderHeader details");
-		return theOrderHeaderRepository.findAll();
+		List<OrderHeader> orderHeaders =theOrderHeaderRepository.findAll();
+		
+	if(orderHeaders.isEmpty()) {
+		log.warn("No orders Found");
+		throw new OrderNotFoundException("No orders Found");
+	}
+	log.info("Successfully retrieved OrderHeader details.");
+	return orderHeaders;
 	}
 
 	@Override
 	public OrderHeader getOrderById(long id) throws OrderNotFoundException  {
 		PropertyConfigurator.configure("Log.property");
-		log.debug("Successfully Get the OrderHeader detail By Order number");
-		return theOrderHeaderRepository.findById(id).get();	
-	}
-
-	@Override
-	public OrderHeader updateFieldByOrderNo(long id, Map<String, Object> updates) {
-		PropertyConfigurator.configure("Log.property");
-		log.debug("Successfully Get the OrderHeader detail By Order number");
-		OrderHeader orderHeader=theOrderHeaderRepository.findById(id).orElseThrow(()-> new RuntimeException("Order NOt Found"));
-		updates.forEach((fieldName,value)->{
-		Field field=ReflectionUtils.findField(OrderHeader.class,fieldName);
-		if(field != null) {
-			field.setAccessible(true);
-		ReflectionUtils.setField(field,orderHeader,value);
+		Optional<OrderHeader> orderHeader=theOrderHeaderRepository.findById(id);
+		if(orderHeader.isPresent()) {
+		log.info("Successfully Get the OrderHeader detail By Order number");
+		return orderHeader.get();
 		}
-		});
-		return theOrderHeaderRepository.save(orderHeader);
+		else {
+			log.error("Order Not Found with "+id+" Order Number.");
+			throw new OrderNotFoundException("Order Not Found with "+id+" Order Number.");
+		}
 	}
-
+	
 	@Override
 	public String deleteByOrderNO(long id) {
 		PropertyConfigurator.configure("Log.property");
-		log.debug("Successfully deleted order details");
+		log.info("Successfully deleted order details");
 		theOrderHeaderRepository.deleteById(id);
 		return "Deleted";
 	}
 
 	@Override
 	public OrderHeader update(long id, OrderHeader orderHeader) throws OrderNotFoundException {
-		OrderHeader orderHeaderUpdate=theOrderHeaderRepository.findById(id).get();
-				
-		orderHeaderUpdate.setBuild(orderHeader.getBuild());
-		orderHeaderUpdate.setOrder_date(orderHeader.getOrder_date());
-		orderHeaderUpdate.setOrderDetails(orderHeader.getOrderDetails());
-		return theOrderHeaderRepository.save(orderHeaderUpdate);
+		PropertyConfigurator.configure("Log.property");
+	Optional<OrderHeader> orderHeaderUpdate=theOrderHeaderRepository.findById(id);
+		if(orderHeaderUpdate.isPresent()) {
+			OrderHeader orderToUpdate=orderHeaderUpdate.get();
+		
+			orderToUpdate.setBuild(orderHeader.getBuild());
+			orderToUpdate.setOrder_date(orderHeader.getOrder_date());
+			orderToUpdate.setOrderDetails(orderHeader.getOrderDetails());
+			log.info("Successfully update the Order detail.");
+		return theOrderHeaderRepository.save(orderToUpdate);
+		}
+		else {
+			log.error("Order Not Found with "+id+" Order Number.");
+			throw new OrderNotFoundException("Order Not Found with "+id+" Order Number.");
+		}
 	}
+
+	
 
 }
 

@@ -1,24 +1,24 @@
 package com.orderPopulation.Service;
 
 import java.util.List;
-import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
 
 import com.orderPopulation.Entity.OrderHeader;
 import com.orderPopulation.Exception.OrderNotFoundException;
 
 public interface OrderHeaderService {
 
-	String createOrder(OrderHeader header);
+	ResponseEntity<OrderHeader> createOrder(OrderHeader header);
 
-	List<OrderHeader> getAllOrder();
+	List<OrderHeader> getAllOrder() throws OrderNotFoundException;
 
 	OrderHeader getOrderById(long order_no) throws OrderNotFoundException;
-
-
-	OrderHeader updateFieldByOrderNo(long order_no, Map<String, Object> m);
-
+	
 	String deleteByOrderNO(long order_no);
 
 	OrderHeader update(long id, OrderHeader orderHeader) throws OrderNotFoundException;
+
+	
 
 }
